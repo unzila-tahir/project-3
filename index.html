@@ -1,0 +1,1246 @@
+
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber-Command Dashboard // MK CREATIVE</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Normal Mode Color Palette */
+            --bg-base: #060913;
+            --bg-panel: rgba(10, 18, 38, 0.75);
+            --bg-panel-solid: #0d1527;
+            --border-color: rgba(0, 243, 255, 0.3);
+            --border-glow: rgba(0, 243, 255, 0.6);
+            --primary: #00f3ff;
+            --primary-glow: rgba(0, 243, 255, 0.5);
+            --secondary: #ff007f;
+            --tertiary: #7000ff;
+            --accent: #00ff66;
+            --text-main: #d0f7ff;
+            --text-dim: #5c7b99;
+            --warning: #ffb700;
+            --danger: #ff003c;
+            --scanline-opacity: 0.15;
+            --grid-line: rgba(0, 243, 255, 0.05);
+            --card-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
+            --font-header: 'Orbitron', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+        }
+
+        /* Emergency Overdrive Palette Override */
+        body.overdrive-mode {
+            --bg-base: #120206;
+            --bg-panel: rgba(38, 8, 14, 0.85);
+            --bg-panel-solid: #21070d;
+            --border-color: rgba(255, 0, 60, 0.5);
+            --border-glow: rgba(255, 0, 60, 0.9);
+            --primary: #ff003c;
+            --primary-glow: rgba(255, 0, 60, 0.7);
+            --secondary: #ff7700;
+            --tertiary: #b900ff;
+            --accent: #ffea00;
+            --text-main: #ffe0e6;
+            --text-dim: #994c5e;
+            --warning: #ffea00;
+            --danger: #ff0000;
+            --scanline-opacity: 0.25;
+            --grid-line: rgba(255, 0, 60, 0.08);
+            --card-shadow: 0 0 30px rgba(255, 0, 60, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.5s ease;
+            position: relative;
+        }
+
+        /* CRT Scanline Overlay */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 999;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+            opacity: var(--scanline-opacity);
+        }
+
+        /* Ambient Pulsing Background Grid */
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Pulsing Alarm Flash for Overdrive */
+        .alarm-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle, transparent 40%, rgba(255, 0, 60, 0.25) 100%);
+            z-index: 998;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        body.overdrive-mode .alarm-overlay {
+            opacity: 1;
+            animation: alarmPulse 1.5s infinite alternate ease-in-out;
+        }
+
+        @keyframes alarmPulse {
+            0% { opacity: 0.2; }
+            100% { opacity: 0.8; }
+        }
+
+        /* App Layout */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 1rem;
+            gap: 1rem;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary);
+            box-shadow: var(--card-shadow);
+            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .brand-icon {
+            font-size: 1.8rem;
+            color: var(--primary);
+            filter: drop-shadow(0 0 8px var(--primary-glow));
+        }
+
+        .brand-text h1 {
+            font-family: var(--font-header);
+            font-size: 1.4rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #fff;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            animation: blink 1.2s infinite alternate;
+        }
+
+        body.overdrive-mode .status-dot {
+            background-color: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
+        }
+
+        @keyframes blink {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        /* Control Buttons */
+        .btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.6rem 1.2rem;
+            font-family: var(--font-header);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            border-color: var(--primary);
+            background: rgba(0, 243, 255, 0.15);
+            box-shadow: 0 0 15px var(--primary-glow);
+            color: #fff;
+        }
+
+        /* Emergency Overdrive Button Styling */
+        .btn-overdrive {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: rgba(255, 0, 60, 0.1);
+        }
+
+        .btn-overdrive:hover {
+            background: var(--danger);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.8);
+        }
+
+        body.overdrive-mode .btn-overdrive {
+            background: var(--danger);
+            color: #fff;
+            animation: pulseBtn 1s infinite alternate;
+        }
+
+        @keyframes pulseBtn {
+            0% { box-shadow: 0 0 10px var(--danger); }
+            100% { box-shadow: 0 0 30px var(--danger), 0 0 50px var(--danger); }
+        }
+
+        /* Main Content Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cyber Panel Box */
+        .panel {
+            background: var(--bg-panel);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px;
+            width: 10px; height: 10px;
+            border-top: 2px solid var(--primary);
+            border-left: 2px solid var(--primary);
+        }
+
+        .panel::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; right: -1px;
+            width: 10px; height: 10px;
+            border-bottom: 2px solid var(--primary);
+            border-right: 2px solid var(--primary);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .panel-title {
+            font-family: var(--font-header);
+            font-size: 1rem;
+            letter-spacing: 1.5px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .panel-title i {
+            color: var(--primary);
+        }
+
+        .panel-tag {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        /* Module 1: Resource Monitor */
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.2rem;
+            flex: 1;
+        }
+
+        @media (max-width: 600px) {
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .resource-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .resource-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
+
+        .resource-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .resource-val {
+            font-family: var(--font-header);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Circular Gauge Container */
+        .gauge-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0.5rem 0;
+            position: relative;
+        }
+
+        .gauge-svg {
+            width: 110px;
+            height: 110px;
+            transform: rotate(-90deg);
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.06);
+            stroke-width: 8;
+        }
+
+        .gauge-fill {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 70;
+            transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.4s ease;
+            filter: drop-shadow(0 0 6px var(--primary-glow));
+        }
+
+        .gauge-center-text {
+            position: absolute;
+            font-family: var(--font-header);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Bar Progress Indicator */
+        .progress-bar-bg {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 75%;
+            box-shadow: 0 0 10px var(--primary-glow);
+            transition: width 0.5s ease, background-color 0.4s ease;
+        }
+
+        /* Core Temp Warning Specific Styling */
+        .critical-temp .gauge-fill,
+        .critical-temp .progress-bar-fill {
+            stroke: var(--danger) !important;
+            background: var(--danger) !important;
+            filter: drop-shadow(0 0 10px var(--danger));
+        }
+
+        /* Module 2: Radar Display */
+        .radar-box {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            min-height: 320px;
+            background: radial-gradient(circle, rgba(0,243,255,0.03) 0%, rgba(0,0,0,0.6) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        canvas#radarCanvas {
+            width: 100%;
+            height: 100%;
+            max-width: 420px;
+            max-height: 420px;
+            display: block;
+        }
+
+        .radar-stats {
+            position: absolute;
+            bottom: 8px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 0.4rem 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+        }
+
+        /* Module 3: Terminal Console Log */
+        .terminal-panel {
+            grid-column: 1 / -1;
+            min-height: 220px;
+        }
+
+        .terminal-screen {
+            background: rgba(4, 7, 15, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 1rem;
+            height: 160px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        /* Custom Scrollbar for Terminal */
+        .terminal-screen::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .terminal-screen::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .terminal-screen::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+        }
+
+        .log-entry {
+            line-height: 1.4;
+            word-break: break-all;
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .log-time {
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
+
+        .log-prefix {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .log-text {
+            color: var(--text-main);
+        }
+
+        .log-text.warn {
+            color: var(--warning);
+        }
+
+        .log-text.danger {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .typewriter-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1em;
+            background: var(--primary);
+            vertical-align: middle;
+            margin-left: 4px;
+            animation: cursorBlink 0.8s infinite;
+        }
+
+        @keyframes cursorBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Controls Panel Grid Overlay */
+        .quick-actions {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 0.8rem;
+        }
+
+        .quick-actions input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem 0.8rem;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .quick-actions input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            padding: 0.8rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Visual Overlays -->
+    <div class="bg-grid"></div>
+    <div class="alarm-overlay"></div>
+
+    <div class="app-container">
+        <!-- Top Navigation / Header -->
+        <header>
+            <div class="brand">
+                <i class="fa-solid fa-microchip brand-icon"></i>
+                <div class="brand-text">
+                    <h1>Cyber-Command // v4.02</h1>
+                    <p>TACTICAL ORBITAL DEFENSE INTERFACE</p>
+                </div>
+            </div>
+
+            <div class="header-controls">
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    <span id="sysStatusText">SYSTEM NOMINAL</span>
+                </div>
+
+                <button class="btn" id="sfxToggleBtn">
+                    <i class="fa-solid fa-volume-high"></i> SFX: ON
+                </button>
+
+                <button class="btn btn-overdrive" id="overdriveBtn">
+                    <i class="fa-solid fa-triangle-exclamation"></i> OVERDRIVE
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="dashboard-grid">
+            <!-- Left Side: Resource Monitor -->
+            <section class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-chart-pie"></i> CORE RESOURCE METRICS
+                    </div>
+                    <div class="panel-tag">LIVE FEED // FREQ 60Hz</div>
+                </div>
+
+                <div class="resources-grid">
+                    <!-- Gauge 1: Power Matrix -->
+                    <div class="resource-card">
+                        <div class="resource-info">
+                            <span class="resource-label"><i class="fa-solid fa-bolt"></i> Power Output</span>
+                            <span class="resource-val" id="powerVal">84%</span>
+                        </div>
+                        <div class="gauge-container">
+                            <svg class="gauge-svg" viewBox="0 0 100 100">
+                                <circle class="gauge-bg" cx="50" cy="50" r="45"></circle>
+                                <circle class="gauge-fill" id="powerGauge" cx="50" cy="50" r="45" style="stroke-dashoffset: 45;"></circle>
+                            </svg>
+                            <span class="gauge-center-text" id="powerGaugeText">84%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="powerBar" style="width: 84%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 2: Oxygen Life Support -->
+                    <div class="resource-card">
+                        <div class="resource-info">
+                            <span class="resource-label"><i class="fa-solid fa-wind"></i> O2 Reserves</span>
+                            <span class="resource-val" id="oxyVal">96%</span>
+                        </div>
+                        <div class="gauge-container">
+                            <svg class="gauge-svg" viewBox="0 0 100 100">
+                                <circle class="gauge-bg" cx="50" cy="50" r="45"></circle>
+                                <circle class="gauge-fill" id="oxyGauge" cx="50" cy="50" r="45" style="stroke-dashoffset: 11;"></circle>
+                            </svg>
+                            <span class="gauge-center-text" id="oxyGaugeText">96%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="oxyBar" style="width: 96%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 3: Kinetic Shields -->
+                    <div class="resource-card">
+                        <div class="resource-info">
+                            <span class="resource-label"><i class="fa-solid fa-shield-halved"></i> Deflector Shield</span>
+                            <span class="resource-val" id="shieldVal">72%</span>
+                        </div>
+                        <div class="gauge-container">
+                            <svg class="gauge-svg" viewBox="0 0 100 100">
+                                <circle class="gauge-bg" cx="50" cy="50" r="45"></circle>
+                                <circle class="gauge-fill" id="shieldGauge" cx="50" cy="50" r="45" style="stroke-dashoffset: 79;"></circle>
+                            </svg>
+                            <span class="gauge-center-text" id="shieldGaugeText">72%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="shieldBar" style="width: 72%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 4: Core Temperature -->
+                    <div class="resource-card" id="tempCard">
+                        <div class="resource-info">
+                            <span class="resource-label"><i class="fa-solid fa-temperature-high"></i> Core Temp</span>
+                            <span class="resource-val" id="tempVal">42°C</span>
+                        </div>
+                        <div class="gauge-container">
+                            <svg class="gauge-svg" viewBox="0 0 100 100">
+                                <circle class="gauge-bg" cx="50" cy="50" r="45"></circle>
+                                <circle class="gauge-fill" id="tempGauge" cx="50" cy="50" r="45" style="stroke-dashoffset: 164;"></circle>
+                            </svg>
+                            <span class="gauge-center-text" id="tempGaugeText">42°C</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="tempBar" style="width: 42%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Radar Tracking Canvas -->
+            <section class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-crosshairs"></i> RADAR SCANNER // SECTOR 7
+                    </div>
+                    <div class="panel-tag" id="targetCountTag">TARGETS: 0 ACTIVE</div>
+                </div>
+
+                <div class="radar-box">
+                    <canvas id="radarCanvas"></canvas>
+                    <div class="radar-stats">
+                        <span>SWEEP: 360° CONTINUOUS</span>
+                        <span id="radarCoordText">LAT: 44.092 // LON: 12.881</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Panel: Dynamic Terminal Console -->
+            <section class="panel terminal-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-terminal"></i> EVENT LOG CONSOLE
+                    </div>
+                    <div>
+                        <button class="btn" id="clearLogBtn" style="padding: 0.2rem 0.6rem; font-size: 0.7rem;">
+                            <i class="fa-solid fa-trash"></i> CLEAR
+                        </button>
+                    </div>
+                </div>
+
+                <div class="terminal-screen" id="terminalScreen">
+                    <!-- Logs dynamically appended via JS -->
+                </div>
+
+                <!-- Command Input Box -->
+                <form class="quick-actions" id="consoleForm">
+                    <input type="text" id="consoleInput" placeholder="Enter command (e.g., /ping, /scan, /overdrive, /clear)..." autocomplete="off" />
+                    <button type="submit" class="btn">EXECUTE</button>
+                </form>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <span>MK CREATIVE // FRONTEND TECHNICAL EVALUATION</span>
+            <span>STATUS: SYSTEM OPERATIONAL</span>
+            <span>ENCRYPTION: 1024-BIT NEURAL</span>
+        </footer>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        /**
+         * CYBER-COMMAND DASHBOARD ENGINE
+         * Architected for standalone evaluation
+         */
+
+        // Sound Effects Synthesizer using Web Audio API
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+                    }
+                }
+            }
+
+            playBeep(freq = 600, type = 'sine', duration = 0.08) {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {
+                    // Audio context errors ignored
+                }
+            }
+
+            playAlarm() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(400, this.ctx.currentTime + 0.3);
+                    
+                    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.3);
+                } catch (e) {}
+            }
+        }
+
+        const soundFX = new SoundEngine();
+
+        // System State
+        const state = {
+            overdrive: false,
+            metrics: {
+                power: 84,
+                oxygen: 96,
+                shield: 72,
+                temp: 42
+            },
+            radarBlips: []
+        };
+
+        // DOM Elements
+        const overdriveBtn = document.getElementById('overdriveBtn');
+        const sfxToggleBtn = document.getElementById('sfxToggleBtn');
+        const sysStatusText = document.getElementById('sysStatusText');
+        const terminalScreen = document.getElementById('terminalScreen');
+        const clearLogBtn = document.getElementById('clearLogBtn');
+        const consoleForm = document.getElementById('consoleForm');
+        const consoleInput = document.getElementById('consoleInput');
+        const tempCard = document.getElementById('tempCard');
+
+        /* ----------------------------------------------------
+         * MODULE 1: RESOURCE MONITOR & FLUCTUATIONS
+         * ---------------------------------------------------- */
+        function updateGauge(gaugeId, textId, barId, value, maxVal = 100, isTemp = false) {
+            const circle = document.getElementById(gaugeId);
+            const text = document.getElementById(textId);
+            const bar = document.getElementById(barId);
+            
+            // Total circumference = 2 * PI * r = 2 * 3.14159 * 45 ≈ 283
+            const circumference = 283;
+            const percentage = Math.min(Math.max(value, 0), maxVal);
+            const offset = circumference - (percentage / maxVal) * circumference;
+
+            if (circle) circle.style.strokeDashoffset = offset;
+            if (text) text.textContent = isTemp ? `${Math.round(value)}°C` : `${Math.round(value)}%`;
+            if (bar) bar.style.width = `${(percentage / maxVal) * 100}%`;
+        }
+
+        function simulateResourceFluctuations() {
+            setInterval(() => {
+                if (state.overdrive) {
+                    // Overdrive mode: High power, rapidly rising core temp, depleting shields
+                    state.metrics.power = Math.min(100, state.metrics.power + (Math.random() * 2 - 0.5));
+                    state.metrics.temp = Math.min(115, state.metrics.temp + (Math.random() * 2.5 + 0.5));
+                    state.metrics.shield = Math.max(10, state.metrics.shield - (Math.random() * 1.5));
+                    state.metrics.oxygen = Math.max(50, state.metrics.oxygen - (Math.random() * 0.4));
+                } else {
+                    // Normal mode: Subtle random fluctuations
+                    state.metrics.power += (Math.random() * 2 - 1);
+                    state.metrics.power = Math.min(Math.max(state.metrics.power, 65), 98);
+
+                    state.metrics.oxygen += (Math.random() * 0.6 - 0.3);
+                    state.metrics.oxygen = Math.min(Math.max(state.metrics.oxygen, 88), 100);
+
+                    state.metrics.shield += (Math.random() * 1.8 - 0.9);
+                    state.metrics.shield = Math.min(Math.max(state.metrics.shield, 45), 95);
+
+                    // Temperature cools down back to nominal (~40-45°C)
+                    if (state.metrics.temp > 42) {
+                        state.metrics.temp -= (Math.random() * 2 + 0.5);
+                    } else {
+                        state.metrics.temp += (Math.random() * 0.8 - 0.4);
+                    }
+                }
+
+                // Apply UI updates
+                document.getElementById('powerVal').textContent = `${Math.round(state.metrics.power)}%`;
+                updateGauge('powerGauge', 'powerGaugeText', 'powerBar', state.metrics.power);
+
+                document.getElementById('oxyVal').textContent = `${Math.round(state.metrics.oxygen)}%`;
+                updateGauge('oxyGauge', 'oxyGaugeText', 'oxyBar', state.metrics.oxygen);
+
+                document.getElementById('shieldVal').textContent = `${Math.round(state.metrics.shield)}%`;
+                updateGauge('shieldGauge', 'shieldGaugeText', 'shieldBar', state.metrics.shield);
+
+                document.getElementById('tempVal').textContent = `${Math.round(state.metrics.temp)}°C`;
+                updateGauge('tempGauge', 'tempGaugeText', 'tempBar', state.metrics.temp, 120, true);
+
+                // Check Temperature Warning Thresholds
+                if (state.metrics.temp > 85) {
+                    tempCard.classList.add('critical-temp');
+                } else {
+                    tempCard.classList.remove('critical-temp');
+                }
+            }, 800);
+        }
+
+        /* ----------------------------------------------------
+         * MODULE 2: RADAR DISPLAY (HTML5 CANVAS)
+         * ---------------------------------------------------- */
+        const canvas = document.getElementById('radarCanvas');
+        const ctx = canvas.getContext('2d');
+        let scanAngle = 0;
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const size = Math.min(rect.width - 20, rect.height - 40);
+            canvas.width = size;
+            canvas.height = size;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Spawn initial radar targets
+        function initRadarBlips() {
+            state.radarBlips = [];
+            const count = Math.floor(Math.random() * 4) + 3;
+            for (let i = 0; i < count; i++) {
+                spawnBlip();
+            }
+        }
+
+        function spawnBlip() {
+            const distance = Math.random() * 0.75 + 0.1; // Normalized radius
+            const angle = Math.random() * Math.PI * 2;
+            const isHostile = Math.random() > 0.6;
+            
+            state.radarBlips.push({
+                id: Math.floor(Math.random() * 9000 + 1000),
+                r: distance,
+                angle: angle,
+                speed: (Math.random() * 0.002 - 0.001),
+                isHostile: isHostile,
+                alpha: 0,
+                detected: false
+            });
+            document.getElementById('targetCountTag').textContent = `TARGETS: ${state.radarBlips.length} ACTIVE`;
+        }
+
+        function drawRadar() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const maxRadius = Math.min(width, height) / 2 - 10;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Primary Color based on state
+            const primaryColor = state.overdrive ? '#ff003c' : '#00f3ff';
+            const dimColor = state.overdrive ? 'rgba(255, 0, 60, 0.25)' : 'rgba(0, 243, 255, 0.25)';
+
+            // Draw Background Rings
+            ctx.strokeStyle = dimColor;
+            ctx.lineWidth = 1;
+            for (let i = 1; i <= 4; i++) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, (maxRadius / 4) * i, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Draw Crosshairs
+            ctx.beginPath();
+            ctx.moveTo(centerX - maxRadius, centerY);
+            ctx.lineTo(centerX + maxRadius, centerY);
+            ctx.moveTo(centerX, centerY - maxRadius);
+            ctx.lineTo(centerX, centerY + maxRadius);
+            ctx.stroke();
+
+            // Draw Rotating Sweep Line & Gradient Trail
+            scanAngle += 0.025;
+            if (scanAngle >= Math.PI * 2) scanAngle = 0;
+
+            ctx.save();
+            ctx.translate(centerX, centerY);
+
+            // Sweep Fade Sector
+            const sweepGradient = ctx.createConicGradient(scanAngle - Math.PI / 3, 0, 0);
+            sweepGradient.addColorStop(0, 'transparent');
+            sweepGradient.addColorStop(0.85, state.overdrive ? 'rgba(255, 0, 60, 0.05)' : 'rgba(0, 243, 255, 0.05)');
+            sweepGradient.addColorStop(1, state.overdrive ? 'rgba(255, 0, 60, 0.4)' : 'rgba(0, 243, 255, 0.4)');
+
+            ctx.fillStyle = sweepGradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, maxRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Sweep Direct Line
+            ctx.strokeStyle = primaryColor;
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = primaryColor;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(scanAngle) * maxRadius, Math.sin(scanAngle) * maxRadius);
+            ctx.stroke();
+            ctx.restore();
+
+            // Render and Update Blips
+            state.radarBlips.forEach((blip, idx) => {
+                blip.angle += blip.speed;
+                const bx = centerX + Math.cos(blip.angle) * (blip.r * maxRadius);
+                const by = centerY + Math.sin(blip.angle) * (blip.r * maxRadius);
+
+                // Calculate angular distance from scan line
+                let diff = scanAngle - blip.angle;
+                while (diff < 0) diff += Math.PI * 2;
+                while (diff >= Math.PI * 2) diff -= Math.PI * 2;
+
+                // Hit detection with sweep line
+                if (diff < 0.1) {
+                    blip.alpha = 1.0;
+                    if (!blip.detected) {
+                        blip.detected = true;
+                        soundFX.playBeep(blip.isHostile ? 900 : 500, 'triangle');
+                        appendTerminalLog(
+                            `CONTACT DETECTED: [TRK-${blip.id}] TYPE: ${blip.isHostile ? 'HOSTILE' : 'CIVILIAN'}`, 
+                            blip.isHostile ? 'danger' : 'normal'
+                        );
+                    }
+                } else {
+                    blip.alpha = Math.max(0.05, blip.alpha - 0.006);
+                    if (diff > 1.0) blip.detected = false;
+                }
+
+                // Render Blip Dot
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(bx, by, blip.isHostile ? 4 : 3, 0, Math.PI * 2);
+                ctx.fillStyle = blip.isHostile ? `rgba(255, 0, 60, ${blip.alpha})` : `rgba(0, 255, 102, ${blip.alpha})`;
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = blip.isHostile ? '#ff003c' : '#00ff66';
+                ctx.fill();
+
+                // Blip Identification Ring
+                if (blip.alpha > 0.4) {
+                    ctx.strokeStyle = blip.isHostile ? `rgba(255, 0, 60, ${blip.alpha * 0.5})` : `rgba(0, 255, 102, ${blip.alpha * 0.5})`;
+                    ctx.strokeRect(bx - 6, by - 6, 12, 12);
+                }
+                ctx.restore();
+            });
+
+            requestAnimationFrame(drawRadar);
+        }
+
+        /* ----------------------------------------------------
+         * MODULE 3: TERMINAL LOG CONSOLE & TYPEWRITER EFFECT
+         * ---------------------------------------------------- */
+        const systemLogsPool = [
+            { text: "Telemetry link re-synchronized with satellite node orbital vector.", level: "normal" },
+            { text: "Sub-routine 44-B completed memory garbage collection.", level: "normal" },
+            { text: "Coolant pressure nominal across heat exchange manifold.", level: "normal" },
+            { text: "Minor sensor jitter detected on outer hull quadrant 3.", level: "warn" },
+            { text: "Scanning deep space spectrum for anomalous frequencies...", level: "normal" },
+            { text: "Deflector matrix harmonics calibrated to 432.8 MHz.", level: "normal" }
+        ];
+
+        function getTimeString() {
+            const d = new Date();
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            const ss = String(d.getSeconds()).padStart(2, '0');
+            const ms = String(d.getMilliseconds()).padStart(3, '0').slice(0, 2);
+            return `[${hh}:${mm}:${ss}.${ms}]`;
+        }
+
+        function appendTerminalLog(message, type = 'normal') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.textContent = getTimeString();
+
+            const prefixSpan = document.createElement('span');
+            prefixSpan.className = 'log-prefix';
+            prefixSpan.textContent = 'SYS://';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = `log-text ${type}`;
+
+            entry.appendChild(timeSpan);
+            entry.appendChild(prefixSpan);
+            entry.appendChild(textSpan);
+            terminalScreen.appendChild(entry);
+
+            // Typewriter effect logic
+            let index = 0;
+            const speed = 12; // ms per char
+
+            function typeChar() {
+                if (index < message.length) {
+                    textSpan.textContent += message.charAt(index);
+                    index++;
+                    terminalScreen.scrollTop = terminalScreen.scrollHeight;
+                    setTimeout(typeChar, speed);
+                }
+            }
+
+            typeChar();
+
+            // Limit total console DOM nodes to avoid memory bloat
+            while (terminalScreen.children.length > 40) {
+                terminalScreen.removeChild(terminalScreen.firstChild);
+            }
+        }
+
+        function startAutoTerminalLogs() {
+            setInterval(() => {
+                if (Math.random() > 0.45) {
+                    const randomMsg = systemLogsPool[Math.floor(Math.random() * systemLogsPool.length)];
+                    if (state.overdrive && Math.random() > 0.5) {
+                        appendTerminalLog("HIGH POWER CONSUMPTION IN OVERDRIVE MODE!", "danger");
+                    } else {
+                        appendTerminalLog(randomMsg.text, randomMsg.level);
+                    }
+                }
+            }, 3500);
+        }
+
+        /* ----------------------------------------------------
+         * MODULE 4: EMERGENCY OVERDRIVE & USER CONTROLS
+         * ---------------------------------------------------- */
+        function toggleOverdrive() {
+            state.overdrive = !state.overdrive;
+            document.body.classList.toggle('overdrive-mode', state.overdrive);
+
+            if (state.overdrive) {
+                sysStatusText.textContent = "CRITICAL // OVERDRIVE ENGAGED";
+                overdriveBtn.innerHTML = `<i class="fa-solid fa-radiation"></i> DISENGAGE OVERDRIVE`;
+                appendTerminalLog("WARNING: EMERGENCY OVERDRIVE INITIATED! ALL SYSTEMS OPERATING AT MAX CAPACITY!", "danger");
+                soundFX.playAlarm();
+            } else {
+                sysStatusText.textContent = "SYSTEM NOMINAL";
+                overdriveBtn.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> OVERDRIVE`;
+                appendTerminalLog("OVERDRIVE DISENGAGED. Core temperature cooling to baseline parameters.", "warn");
+                soundFX.playBeep(400, 'sine', 0.2);
+            }
+        }
+
+        overdriveBtn.addEventListener('click', toggleOverdrive);
+
+        // Sound FX Toggle Button
+        sfxToggleBtn.addEventListener('click', () => {
+            soundFX.muted = !soundFX.muted;
+            if (soundFX.muted) {
+                sfxToggleBtn.innerHTML = `<i class="fa-solid fa-volume-xmark"></i> SFX: OFF`;
+            } else {
+                sfxToggleBtn.innerHTML = `<i class="fa-solid fa-volume-high"></i> SFX: ON`;
+                soundFX.playBeep(800, 'sine', 0.05);
+            }
+        });
+
+        // Clear Logs Button
+        clearLogBtn.addEventListener('click', () => {
+            terminalScreen.innerHTML = '';
+            appendTerminalLog("Terminal logs cleared by operator.", "normal");
+        });
+
+        // Console Input Handler
+        consoleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const cmd = consoleInput.value.trim();
+            if (!cmd) return;
+
+            appendTerminalLog(`USR_CMD > ${cmd}`, 'normal');
+            consoleInput.value = '';
+
+            const lowerCmd = cmd.toLowerCase();
+            if (lowerCmd === '/overdrive') {
+                toggleOverdrive();
+            } else if (lowerCmd === '/clear') {
+                terminalScreen.innerHTML = '';
+            } else if (lowerCmd === '/ping') {
+                appendTerminalLog("PONG! Latency: 1.4ms (Orbital Relay)", "normal");
+            } else if (lowerCmd === '/scan') {
+                spawnBlip();
+                appendTerminalLog("Manual radar scan triggered. Target array updated.", "normal");
+            } else {
+                appendTerminalLog(`UNKNOWN COMMAND: '${cmd}'. Type /ping, /scan, /overdrive, or /clear.`, "warn");
+            }
+        });
+
+        /* ----------------------------------------------------
+         * INITIALIZATION ON PAGE LOAD
+         * ---------------------------------------------------- */
+        window.onload = function() {
+            initRadarBlips();
+            drawRadar();
+            simulateResourceFluctuations();
+            startAutoTerminalLogs();
+
+            // Initial startup log sequence
+            appendTerminalLog("Cyber-Command Dashboard initialized successfully.", "normal");
+            appendTerminalLog("All subsystem telemetry feeds connected.", "normal");
+            appendTerminalLog("Radar array Sector 7 online and sweeping.", "normal");
+        };
+    </script>
+</body>
+</html>
+</body>
+</html>
